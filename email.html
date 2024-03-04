@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Test</title>
+</head>
+<body>
+
+  <h2>Test Form</h2>
+  <form id="testForm">
+    <label for="name">Name:</label><br>
+    <input type="text" id="name" name="name"><br>
+    <label for="email">Email:</label><br>
+    <input type="email" id="email" name="email"><br><br>
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    document.getElementById('testForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent the form from submitting normally
+
+      // Get the form data
+      const formData = new FormData(event.target);
+
+      // Convert form data to JSON object
+      const jsonObject = {};
+      formData.forEach((value, key) => {
+        jsonObject[key] = value;
+      });
+
+      // Log the JSON object to the console
+      console.log(jsonObject);
+
+      // Here you can perform any further actions like sending the data to a server via AJAX
+    });
+  </script>
+
+</body>
+</html>

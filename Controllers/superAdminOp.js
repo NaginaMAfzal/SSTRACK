@@ -1611,10 +1611,19 @@ const forgotPassword = async (req, res) => {
         // Send the verification email
         const msg = {
             to: normalizedEmail,
-            from: 'invites@screenshottime.com', // Replace with your own email or a verified sender in SendGrid
+            from: 'SSTRACK <invites@screenshottime.com>', // Replace with your own email or a verified sender in SendGrid
             subject: 'Your reset password verification code is here',
             text: `Please reset your password using this code: ${number}`,
-            html: `<p>Reset your password using this code: <strong>${number}</strong></p><p>Please don't share this code with anyone else</p>`
+            html: `<p>Reset your password using this code: <strong>${number}</strong></p><p>Please don't share this code with anyone else</p>
+                    <p style="color: #555; text-align: center;">
+                        <strong>Note:</strong> This link will expire after 24 hours.
+                        Please access the link before <strong>${new Date(otpTime).toLocaleString()}</strong>.
+                    </p>
+                    <p style="color: #555; text-align: center;">
+                        If you have any questions or need further assistance, please contact us at 
+                        <a href="mailto:support@caiif.ca" style="color: #0066cc;">support@caiif.ca</a> or call us at 
+                        <a href="tel:+12895869810" style="color: #0066cc;">+1 (289) 586-9810</a>.
+                    </p>`
         };
 
         await sgMail.send(msg);
@@ -1652,10 +1661,27 @@ const emailInvite = async (req, res) => {
             const inviteLink = `https://www.sstrack.io/create-account/${gLink}/${normalizedEmail}`;
             const msg = {
                 to: normalizedEmail,
-                from: 'invites@screenshottime.com', // replace this with your own email
-                subject: 'You have been invited',
+                from: 'SSTRACK <invites@screenshottime.com>',
+                subject: 'You Have Been Invited',
                 text: `You have been invited. Please click on the following link to join:`,
-                html: `<p>You have been invited. Please click on the following link to join: SSTRACK <a href="${inviteLink}">${inviteLink}</a></p>`
+                html: `
+                    <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+                        <h2 style="color: #333; text-align: center;">You Have Been Invited!</h2>
+                        <p style="color: #555; text-align: center;">Please click on the following link to join:</p>
+                        <div style="text-align: center; margin: 20px;">
+                            <a href="${inviteLink}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: #fff; text-decoration: none; border-radius: 5px;">Join SSTRACK</a>
+                        </div>
+                        <p style="color: #555; text-align: center;">
+                            <strong>Note:</strong> This link will expire after 24 hours.
+                            Please access the link before <strong>${new Date(expirationTimestamp).toLocaleString()}</strong>.
+                        </p>
+                        <p style="color: #555; text-align: center;">
+                            If you have any questions or need further assistance, please contact us at 
+                            <a href="mailto:support@caiif.ca" style="color: #0066cc;">support@caiif.ca</a> or call us at 
+                            <a href="tel:+12895869810" style="color: #0066cc;">+1 (289) 586-9810</a>.
+                        </p>
+                    </div>
+                `
             };
 
             await sgMail.send(msg);
@@ -1679,7 +1705,7 @@ const emailInviteClient = async (req, res) => {
     const inviteLink = `https://yourwebsite.com/invite-client/${gLink}`;
     const msg = {
         to: toEmail,
-        from: 'invites@screenshottime.com', // replace this with your own email
+        from: 'SSTRACK <invites@screenshottime.com>', // replace this with your own email
         subject: 'You have been invited as a client',
         text: `You have been invited. Please click on the following link to join: ${inviteLink}`,
         html: `<p>You have been invited. Please click on the following link to join: <a href="${inviteLink}">${inviteLink}</a></p>`

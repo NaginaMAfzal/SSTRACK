@@ -1,4 +1,3 @@
-/* eslint-disable func-names */
 import express from 'express';
 import cors from 'cors';
 import status from 'http-status';
@@ -6,14 +5,13 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import compression from 'compression';
 import passport from 'passport';
-import dbConnection from './Connection/dbConnect';
-import Router from './Routes/Router';
-import errorHandler from './Middlewares/errorHandler';
-import verifyToken from './Middlewares/verifyToken';
-import User from './Models/userSchema';
-import Pusher from "pusher";
-import timeTracking from './Models/timeSchema';
-import Timetracking from './Controllers/Timetracking';
+import dbConnection from './Connection/dbConnect.js';
+import Router from './Routes/Router.js';
+import errorHandler from './Middlewares/errorHandler.js';
+import verifyToken from './Middlewares/verifyToken.js';
+import User from './Models/userSchema.js';
+import timeTracking from './Models/timeSchema.js';
+import Timetracking from './Controllers/Timetracking.js';
 // const robot = require('robotjs');
 // const schedule = require('node-schedule');
 

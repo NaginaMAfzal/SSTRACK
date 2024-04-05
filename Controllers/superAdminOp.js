@@ -22,15 +22,15 @@ import generateUniqueId from 'generate-unique-id';
 import mongoose from 'mongoose';
 import { DateTime } from 'luxon';
 
-import EventSchema from '../Models/eventSchema';
-import Project from '../Models/projectSchema';
-import User from '../Models/userSchema';
-import TimeTracking from '../Models/timeSchema';
-import EmployeeSettings from '../Models/effectiveSettingSchema';
-import ScreenshotHistory from '../Models/screenshotHistorySchema';
-import Timetracking from './Timetracking';
-import userSchema from '../Models/userSchema';
-
+import EventSchema from '../Models/eventSchema.js';
+import Project from '../Models/projectSchema.js';
+import User from '../Models/userSchema.js';
+import TimeTracking from '../Models/timeSchema.js';
+import EmployeeSettings from '../Models/effectiveSettingSchema.js';
+import ScreenshotHistory from '../Models/screenshotHistorySchema.js';
+import Timetracking from './Timetracking.js';
+import userSchema from '../Models/userSchema.js';
+import sgMail from '@sendgrid/mail';
 
 
 
@@ -1521,7 +1521,6 @@ const getActivityData = async (req, res) => {
     }
 };
 
-import sgMail from '@sendgrid/mail';
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const emailInviteExp = async (req, res) => {
@@ -2226,7 +2225,6 @@ const addOfflineTime = async (req, res) => {
         timeTracking.timeEntries.sort((a, b) => a.startTime - b.startTime);
         // Save the changes to the time tracking document
         await timeTracking.save();
-
 
         return res.status(200).json({
             success: true,

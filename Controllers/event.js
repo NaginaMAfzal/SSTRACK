@@ -1,5 +1,5 @@
 import status from 'http-status';
-import EventSchema from '../Models/eventSchema';
+import EventSchema from '../Models/eventSchema.js';
 
 const getEvents = (req, res) => {
 	EventSchema.find()

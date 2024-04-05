@@ -6,13 +6,13 @@ import status from 'http-status';
 import moment from 'moment-timezone';
 // import mongoose from 'mongoose';
 import { DateTime } from 'luxon';
-import TimeTracking from '../Models/timeSchema';
+import TimeTracking from '../Models/timeSchema.js';
 
-import ProjectSchema from '../Models/projectSchema';
-import User from '../Models/userSchema';
-import ScreenshotHistory from '../Models/screenshotHistorySchema';
-import aws from './aws';
-import updationSchema from '../Models/updationSchema';
+import ProjectSchema from '../Models/projectSchema.js';
+import User from '../Models/userSchema.js';
+import ScreenshotHistory from '../Models/screenshotHistorySchema.js';
+import aws from './aws.js';
+import updationSchema from '../Models/updationSchema.js';
 
 /* eslint-disable no-plusplus */
 /* eslint-disable no-await-in-loop */
@@ -271,7 +271,6 @@ const updateAppUrl = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to update app URL', error });
     }
 }
-
 
 const addScreenshotab = async (req, res) => {
     console.log(req.method, "request received")

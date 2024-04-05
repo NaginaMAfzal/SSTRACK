@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import status from 'http-status';
-import Model from '../Models/Model';
+import Model from '../Models/Model.js';
 
 const isLoggedIn = (req, res, next) => {
     console.log(req.user);
@@ -31,6 +31,4 @@ const isLoggedIn = (req, res, next) => {
     }
 };
 
-export default {
-    isLoggedIn,
-};
+export default {isLoggedIn};

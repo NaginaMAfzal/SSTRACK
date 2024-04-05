@@ -14,11 +14,10 @@ import status from 'http-status';
 import bcryptjs from 'bcryptjs';
 import { DateTime } from 'luxon';
 import moment from 'moment-timezone';
-import UserSchema from '../Models/userSchema';
-import TimeTracking from '../Models/timeSchema';
-import ProjectSchema from '../Models/projectSchema';
-import userSchema from '../Models/userSchema';
-import DateTime from 'luxon';
+import UserSchema from '../Models/userSchema.js';
+import TimeTracking from '../Models/timeSchema.js';
+import ProjectSchema from '../Models/projectSchema.js';
+import userSchema from '../Models/userSchema.js';
 
 
 const updateEmployeeToCompany = async (req, res) => {

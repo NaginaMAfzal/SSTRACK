@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
 const verifyTokenSetUser = (req, res, next) => {
 	const authHeader = req.get('Authorization');

@@ -1521,7 +1521,7 @@ const getActivityData = async (req, res) => {
     }
 };
 
-const sgMail = require('@sendgrid/mail');
+import sgMail from '@sendgrid/mail';
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const emailInviteExp = async (req, res) => {
@@ -1657,7 +1657,6 @@ const emailInvite = async (req, res) => {
             company,
         });
         try {
-
             const inviteLink = `https://www.sstrack.io/create-account/${gLink}/${normalizedEmail}`;
             const msg = {
                 to: normalizedEmail,
@@ -3521,7 +3520,6 @@ const getTotalHoursAndScreenshotemy = async (req, res) => {
         }
 
         const ratePerHour = user.billingInfo ? user.billingInfo.ratePerHour : 0;
-        const { DateTime } = require('luxon');
 
         // Convert user input to the application's standard time zone
         const userDateTime = setHoursDifference(date, req.user.timezoneOffset, req.user.timezone)
@@ -3984,7 +3982,6 @@ const getTotalHoursAndScreenshote = async (req, res) => {
         }
 
         const ratePerHour = user.billingInfo ? user.billingInfo.ratePerHour : 0;
-        const { DateTime } = require('luxon');
 
         // Convert user input to the application's standard time zone
         const userDateTime = setHoursDifference(date, req.user.timezoneOffset, req.user.timezone)

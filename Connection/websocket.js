@@ -1,10 +1,10 @@
-const express = require('express');
-const http = require('http');
-const mysql = require('mysql2');
-const bodyParser = require('body-parser');
-const path = require('path');
-const cors = require('cors');
-const socketIO = require('socket.io'); // Import socket.io
+import express from 'express';
+import http from 'http';
+import mysql from 'mysql2';
+import bodyParser from 'body-parser';
+import path from 'path';
+import cors from 'cors';
+import socketIO from 'socket.io'; // Import socket.io
 
 const Port = 8080;
 const app = express();

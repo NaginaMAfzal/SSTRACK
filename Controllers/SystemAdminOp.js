@@ -11,7 +11,7 @@ import TimeTracking from '../Models/timeSchema';
 import ProjectSchema from '../Models/projectSchema';
 
 // hello cyclic 
-const moment = require('moment');
+import moment from 'moment';
 
 const getEvents = async (req, res) => {
     try {

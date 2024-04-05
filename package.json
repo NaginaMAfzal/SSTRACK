@@ -21,6 +21,7 @@
         "nodemon": "^1.19.1",
         "prettier": "^1.18.2"
     },
+	"type":"module",
     "dependencies": {
         "@sendgrid/mail": "^7.7.0",
         "aws-sdk": "^2.607.0",

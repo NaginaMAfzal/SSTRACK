@@ -18,6 +18,7 @@ import UserSchema from '../Models/userSchema';
 import TimeTracking from '../Models/timeSchema';
 import ProjectSchema from '../Models/projectSchema';
 import userSchema from '../Models/userSchema';
+import DateTime from 'luxon';
 
 
 const updateEmployeeToCompany = async (req, res) => {
@@ -1026,7 +1027,6 @@ const getTotalHoursAndScreenshots = async (req, res) => {
         }
 
         const ratePerHour = user.billingInfo ? user.billingInfo.ratePerHour : 0;
-        const { DateTime } = require('luxon');
 
         // Convert user input to the application's standard time zone
         const userDateTime = setHoursDifference(date, req.user.timezoneOffset, req.user.timezone)

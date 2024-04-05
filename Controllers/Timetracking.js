@@ -6,8 +6,8 @@ import status from 'http-status';
 import moment from 'moment-timezone';
 // import mongoose from 'mongoose';
 import { DateTime } from 'luxon';
-import TimeTracking from '../Models/timeSchema.js';
-
+import TimeTrack from '../Models/timeSchema.js';
+import TimeTrack from '../Models/Model.js'
 import ProjectSchema from '../Models/projectSchema.js';
 import User from '../Models/userSchema.js';
 import ScreenshotHistory from '../Models/screenshotHistorySchema.js';
@@ -42,7 +42,7 @@ const getDailyTimetracking = async (req, res) => {
     };
 
     try {
-        const timeTrackings = await TimeTracking.find({
+        const timeTrackings = await TimeTrack.find({
             userId: req.user._id,
         }).populate('userId');
 
@@ -144,7 +144,7 @@ const addNewTracking = async (req, res) => {
         }
 
         // Find an existing time tracking document for the current day
-        const timeTracking = await TimeTracking.findOne({
+        const timeTracking = await TimeTrack.findOne({
             userId: req.user._id,
             projectId,
         });
@@ -190,7 +190,7 @@ const addNewTracking = async (req, res) => {
         }
 
         // Update or create the time tracking document
-        const updatedTimeTracking = await TimeTracking.findOneAndUpdate(
+        const updatedTimeTracking = await TimeTrack.findOneAndUpdate(
             {
                 userId: req.user._id,
                 projectId,
@@ -297,7 +297,7 @@ const addScreenshotab = async (req, res) => {
         const startTime = new Date(req.body.startTime)
 
         // Find the time tracking document with the given time entry
-        const timeTrack = await TimeTracking.findOne({ 'timeEntries._id': timeEntryId });
+        const timeTrack = await TimeTrack.findOne({ 'timeEntries._id': timeEntryId });
         if (!timeTrack) {
             return res.status(404).json({ success: false, message: 'Time entry not found' });
         }
@@ -423,7 +423,7 @@ const addScreenshott = async (req, res) => {
     let visitedUrls = [];
     try {
         // Find the time tracking document with the given time entry
-        const timeTrack = await TimeTracking.findOne({ 'timeEntries._id': timeEntryId });
+        const timeTrack = await TimeTrack.findOne({ 'timeEntries._id': timeEntryId });
         if (!timeTrack) {
             return res.status(404).json({ success: false, message: 'Time entry not found' });
         }
@@ -529,7 +529,7 @@ const addScreenshot = async (req, res) => {
     const filename = "https://timetracker-09.s3.amazonaws.com/" + file.originalname;
     try {
         // Find the time tracking document with the given time entry
-        const timeTrack = await TimeTracking.findOne({ 'timeEntries._id': timeEntryId });
+        const timeTrack = await TimeTrack.findOne({ 'timeEntries._id': timeEntryId });
         if (!timeTrack) {
             return res.status(404).json({ success: false, message: 'Time entry not found' });
         }
@@ -649,7 +649,7 @@ const addScreenshotold = async (req, res) => {
 
     try {
         // Find the time tracking document with the given time entry
-        const timeTrack = await TimeTracking.findOne({ 'timeEntries._id': timeEntryId });
+        const timeTrack = await TimeTrack.findOne({ 'timeEntries._id': timeEntryId });
         if (!timeTrack) {
             return res.status(404).json({ success: false, message: 'Time entry not found' });
         }
@@ -734,7 +734,7 @@ const getUserOnlineStatus = async (req, res) => {
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
     try {
-        const timeTracking = await TimeTracking.findOne({
+        const timeTracking = await TimeTrack.findOne({
             userId,
             'timeEntries.startTime': { $gte: startOfToday, $lt: endOfToday },
         });
@@ -757,7 +757,7 @@ const getUserOnlineStatus = async (req, res) => {
 
 const newDayEntry = async (req, res) => {
 
-    const timeTracking = await TimeTracking.findOne({
+    const timeTracking = await TimeTrack.findOne({
         userId: req.user._id,
         'timeEntries._id': req.params.timeEntryId,
     });
@@ -788,7 +788,7 @@ const stopTracking = async (req, res) => {
 
     try {
         // Find the time tracking document containing the specified time entry
-        const timeTracking = await TimeTracking.findOne({
+        const timeTracking = await TimeTrack.findOne({
             userId: req.user._id,
             'timeEntries._id': req.params.timeEntryId,
         });
@@ -925,7 +925,7 @@ async function retrieveScreenshotsForUser(userId) {
         let latestScreenshot = null
         const user = await User.findById(userId);
 
-        const timeEntries = await TimeTracking.find({ userId })
+        const timeEntries = await TimeTrack.find({ userId })
             .populate({
                 path: 'timeEntries',
                 options: { sort: { startTime: -1 }, limit: 5 },
@@ -970,7 +970,7 @@ const getUserScreenshot = async (userId) => {
             return [];
         }
 
-        const timeEntries = await TimeTracking.find({ userId })
+        const timeEntries = await TimeTrack.find({ userId })
             .populate({
                 path: 'timeEntries',
                 populate: {
@@ -1082,7 +1082,7 @@ const getTotalHoursWorked = async (req, res) => {
         // 0 day of the next month, which gives the last day of the current month
 
         // Get the timeTrackings
-        const timeTrackings = await TimeTracking.find({ userId });
+        const timeTrackings = await TimeTrack.find({ userId });
 
         // If there is no time tracking data for the user, return 0 for total hours and billing amounts
         if (!timeTrackings || timeTrackings.length === 0) {
@@ -1293,7 +1293,7 @@ const getActivityData = async (req, res) => {
         // 0 day of the next month, which gives the last day of the current month
 
         // Get the timeTrackings
-        const timeTrackings = await TimeTracking.find({ userId }).populate('timeEntries.screenshots timeEntries.visitedUrls');
+        const timeTrackings = await TimeTrack.find({ userId }).populate('timeEntries.screenshots timeEntries.visitedUrls');
 
         const activityData = {
             daily: { visitedUrls: [] },
@@ -1347,7 +1347,7 @@ const sortedScreenshots = async (req, res) => {
         const endOfDate = new Date(startOfDate.getTime() + 24 * 60 * 60 * 1000);
 
         // Query the database to retrieve all timeEntries for the specific user
-        const timeTrackings = await TimeTracking.find({ userId }).populate('userId');
+        const timeTrackings = await TimeTrack.find({ userId }).populate('userId');
 
         const allScreenshots = [];
         const userMap = new Map();
@@ -1484,7 +1484,7 @@ const updateActivityData = async (req, res) => {
     const { visitedUrls } = req.body;
     const userId = req.user._id;
     try {
-        const timeTracking = await TimeTracking.findOne({ userId });
+        const timeTracking = await TimeTrack.findOne({ userId });
 
         if (!timeTracking) {
             return res.status(404).json({ success: false, message: 'User not found' });
@@ -1521,7 +1521,7 @@ const deleteScreenshotAndDeductTime = async (req, res) => {
     try {
         const { screenshotId, timeTrackingId } = req.params;
         console.log(screenshotId, timeTrackingId);
-        const timeTracking = await TimeTracking.findById(timeTrackingId);
+        const timeTracking = await TimeTrack.findById(timeTrackingId);
 
         if (!timeTracking) {
             return res.status(404).json({ success: false, message: 'Time tracking not found' });
@@ -1723,7 +1723,7 @@ const getTotalHoursWithOfflineAndScreenshots = async (req, res) => {
         endOfThisMonth.setMonth(startOfThisMonth.getMonth() + 1); // 1 month added to the start of the month
         // 0 day of the next month, which gives the last day of the current month
 
-        const timeTrackings = await TimeTracking.find({ userId });
+        const timeTrackings = await TimeTrack.find({ userId });
 
         const totalHoursWorked = {
             daily: 0,
@@ -1887,7 +1887,7 @@ const splitActivity = async (req, res) => {
     try {
         const { timeEntryId, activityId, splitTime } = req.body;
 
-        const timeTracking = await TimeTracking.findOne({
+        const timeTracking = await TimeTrack.findOne({
             _id: req.user._id,
             'timeEntries._id': timeEntryId,
         });
@@ -2007,7 +2007,7 @@ const deleteActivity = async (req, res) => {
         const { timeTrackingId, activityId } = req.params;
 
         // Find the time tracking document by ID
-        const timeTracking = await TimeTracking.findById(timeTrackingId);
+        const timeTracking = await TimeTrack.findById(timeTrackingId);
 
         if (!timeTracking) {
             return res.status(404).json({ success: false, message: 'Time tracking document not found' });
@@ -2079,7 +2079,7 @@ const getMonthlyRecordsold = async (req, res) => {
 };
 
 const getTotalHoursForMonthold = async (userId, monthStartDate, monthEndDate) => {
-    const timeTrackings = await TimeTracking.find({ userId });
+    const timeTrackings = await TimeTrack.find({ userId });
 
     let totalHours = 0;
 
@@ -2129,7 +2129,7 @@ const calculateTotalWorkingHoursForYear = async (userId, year) => {
     const startOfYear = new Date(year, 0, 1);
     const endOfYear = new Date(year + 1, 0, 1);
 
-    const timeTrackings = await TimeTracking.find({ userId });
+    const timeTrackings = await TimeTrack.find({ userId });
     let totalWorkingHours = 0;
 
     for (const timeTracking of timeTrackings) {
@@ -2178,7 +2178,7 @@ const getLastDateOfWeek = (year, week) => {
 };
 
 const getWeekRecords = async (userId, weekStartDate, weekEndDate) => {
-    const timeTrackings = await TimeTracking.find({ userId });
+    const timeTrackings = await TimeTrack.find({ userId });
 
     let totalWeeklyHours = 0;
 
@@ -2242,7 +2242,7 @@ const getWeeklyRecordsold = async (req, res) => {
 };
 
 const getTotalHoursForWeekold = async (userId, weekStartDate, weekEndDate) => {
-    const timeTrackings = await TimeTracking.find({ userId });
+    const timeTrackings = await TimeTrack.find({ userId });
 
     let totalHours = 0;
 
@@ -2316,7 +2316,7 @@ const getTotalHoursWithOfflineAndScreenshotse = async (req, res) => {
         const endOfThisMonth = userDateTime.endOf('month');
         // ...and so on for other calculations
 
-        const timeTrackings = await TimeTracking.find({ userId });
+        const timeTrackings = await TimeTrack.find({ userId });
         const activityData = {
             daily: { visitedUrls: [] },
             weekly: { visitedUrls: [] },
@@ -2629,7 +2629,7 @@ const visitedurlSave = async (req, res) => {
 
     try {
         // Find the specific time entry by its _id
-        const timeTrack = await TimeTracking.findOne({ 'timeEntries._id': timeEntryId });
+        const timeTrack = await TimeTrack.findOne({ 'timeEntries._id': timeEntryId });
 
         if (!timeTrack) {
             return res.status(404).json({ success: false, message: 'Time entry not found' });
@@ -2694,7 +2694,7 @@ const getTotalHoursByDay = async (req, res) => {
         const startOfToday = userDateTime.startOf('day');
         const endOfToday = userDateTime.endOf('day');
 
-        const timeTrackings = await TimeTracking.find({ userId });
+        const timeTrackings = await TimeTrack.find({ userId });
 
         var newTimeEntry = [];
         const totalHoursByDay = [];
@@ -2865,7 +2865,7 @@ const getReportForYear = async (user, yearStartDate, yearEndDate, timezone) => {
     // Assuming totalMatchValues is the sum of all matchvalues
     let totalMatchValues = 0;
     let ReportPercentage = [];
-    const timeTrackings = await TimeTracking.find({ userId: user._id });
+    const timeTrackings = await TimeTrack.find({ userId: user._id });
     for (const timeTracking of timeTrackings) {
         for (const timeEntry of timeTracking.timeEntries) {
             if (timeEntry.screenshots && timeEntry.screenshots.length > 0) {
@@ -2992,7 +2992,7 @@ const getTotalHoursForYear = async (user, yearStartDate, yearEndDate, timezone) 
     let activityCount = 0;
     let totalActivity = 0;
 
-    const timeTrackings = await TimeTracking.find({ userId: user._id });
+    const timeTrackings = await TimeTrack.find({ userId: user._id });
     for (const timeTracking of timeTrackings) {
         for (const timeEntry of timeTracking.timeEntries) {
             let startTime = DateTime.fromJSDate(timeEntry.startTime, { zone: timezone });
@@ -3150,7 +3150,7 @@ const getReportForMonth = async (user, monthStartDate, monthEndDate, timezone) =
     // Assuming totalMatchValues is the sum of all matchvalues
     let totalMatchValues = 0;
     let ReportPercentage = [];
-    const timeTrackings = await TimeTracking.find({ userId: user._id });
+    const timeTrackings = await TimeTrack.find({ userId: user._id });
     for (const timeTracking of timeTrackings) {
         for (const timeEntry of timeTracking.timeEntries) {
             if (timeEntry.screenshots && timeEntry.screenshots.length > 0) {
@@ -3276,7 +3276,7 @@ const getTotalHoursForMonth = async (user, monthStartDate, monthEndDate, timezon
     let hoursWorked = 0;
     let activityCount = 0;
     let totalActivity = 0;
-    const timeTrackings = await TimeTracking.find({ userId: user._id });
+    const timeTrackings = await TimeTrack.find({ userId: user._id });
     for (const timeTracking of timeTrackings) {
         for (const timeEntry of timeTracking.timeEntries) {
             let startTime = DateTime.fromJSDate(timeEntry.startTime, { zone: timezone });
@@ -3435,7 +3435,7 @@ const getReportForWeek = async (user, weekStartDate, weekEndDate, timezone) => {
     // Assuming totalMatchValues is the sum of all matchvalues
     let totalMatchValues = 0;
     let ReportPercentage = [];
-    const timeTrackings = await TimeTracking.find({ userId: user._id });
+    const timeTrackings = await TimeTrack.find({ userId: user._id });
 
     for (const timeTracking of timeTrackings) {
         for (const timeEntry of timeTracking.timeEntries) {
@@ -3562,7 +3562,7 @@ const getTotalHoursForWeek = async (user, weekStartDate, weekEndDate, timezone) 
     let hoursWorked = 0;
     let activityCount = 0;
     let totalActivity = 0;
-    const timeTrackings = await TimeTracking.find({ userId: user._id });
+    const timeTrackings = await TimeTrack.find({ userId: user._id });
     for (const timeTracking of timeTrackings) {
         for (const timeEntry of timeTracking.timeEntries) {
             let startTime = DateTime.fromJSDate(timeEntry.startTime, { zone: timezone });
@@ -3723,7 +3723,7 @@ const getDailyRecords = async (req, res) => {
 const getReportForDay = async (user, dayStartTime, dayEndTime, timezone) => {
     let totalMatchValues = 0;
     let ReportPercentage = [];
-    const timeTrackings = await TimeTracking.find({ userId: user._id });
+    const timeTrackings = await TimeTrack.find({ userId: user._id });
     // Assuming totalMatchValues is the sum of all matchvalues
 
     for (const timeTracking of timeTrackings) {
@@ -3850,7 +3850,7 @@ const getTotalHoursForDay = async (user, dayStartTime, dayEndTime, timezone) => 
     let hoursWorked = 0;
     let activityCount = 0;
     let totalActivity = 0;
-    const timeTrackings = await TimeTracking.find({ userId: user._id });
+    const timeTrackings = await TimeTrack.find({ userId: user._id });
 
     for (const timeTracking of timeTrackings) {
         for (const timeEntry of timeTracking.timeEntries) {

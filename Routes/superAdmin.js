@@ -1,8 +1,8 @@
 import express from 'express';
-import events from '../Controllers/superAdminOp.js';
-import isLoggedInUser from '../Middlewares/loggedIn.js';
+import events from '../Controllers/superAdminOp';
+import isLoggedInUser from '../Middlewares/loggedIn';
 // auth middlewares for admin
-import isAdminMiddleware from '../Middlewares/isSuperAdmin.js';
+import isAdminMiddleware from '../Middlewares/isSuperAdmin';
 // auth middleware for user
 
 

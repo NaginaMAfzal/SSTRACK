@@ -1,5 +1,5 @@
 /* eslint-disable func-names */
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
 
@@ -43,6 +43,8 @@ const userSchema = new mongoose.Schema({
     }],
     isActive: { type: Boolean, default: false },
     lastActive: { type: Date, default: Date.now },
+    isActiveOnMb: { type: Boolean, default: false },
+    lastActiveOnMb: { type: Date, default: Date.now },
     billingInfo: BillingInfoSchema,
     isArchived: {
         type: Boolean,

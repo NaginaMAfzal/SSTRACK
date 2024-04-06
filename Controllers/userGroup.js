@@ -1,7 +1,7 @@
 import status from 'http-status';
-import UserGroupSchema from '../Models/userGroupSchema.js';
-import ProjectSchema from '../Models/projectSchema.js';
-import User from '../Models/Model.js';
+import UserGroupSchema from '../Models/userGroupSchema';
+import ProjectSchema from '../Models/projectSchema';
+import User from '../Models/Model';
 
 const getUserGroups = (req, res) => {
     UserGroupSchema.find()

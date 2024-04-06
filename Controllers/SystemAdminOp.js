@@ -6,12 +6,12 @@
 /* eslint-disable no-await-in-loop */
 // import status from 'http-status';
 import status from 'http-status';
-import UserSchema from '../Models/userSchema.js';
-import TimeTracking from '../Models/timeSchema.js';
-import ProjectSchema from '../Models/projectSchema.js';
+import UserSchema from '../Models/userSchema';
+import TimeTracking from '../Models/timeSchema';
+import ProjectSchema from '../Models/projectSchema';
 
 // hello cyclic 
-import moment from 'moment';
+const moment = require('moment');
 
 const getEvents = async (req, res) => {
     try {

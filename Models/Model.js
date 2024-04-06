@@ -1,7 +1,7 @@
-import UserModel from './userSchema.js';
-import EventModel from './eventSchema.js';
-import OwnerModel from './ownerSchema.js';
-import TimeTrack from './timeSchema.js';
+import UserModel from './userSchema';
+import EventModel from './eventSchema';
+import OwnerModel from './ownerSchema';
+import TimeTrack from './timeSchema';
 
 export default {
     UserModel,

@@ -1,12 +1,12 @@
 import express from 'express';
-import events from '../Controllers/event.js';
+import events from '../Controllers/event';
 
 // auth middlewares for admin
-import isAdminMiddleware from '../Middlewares/isManager.js';
+import isAdminMiddleware from '../Middlewares/isManager';
 // auth middleware for user
-import isLoggedInUser from '../Middlewares/loggedIn.js';
+import isLoggedInUser from '../Middlewares/loggedIn';
 // validations
-import eventValidator from '../validations/event.js';
+import eventValidator from '../validations/event';
 
 const eventRouter = express.Router();
 
@@ -24,6 +24,7 @@ eventRouter.get('/:eid', isLoggedInUser.isLoggedIn, events.getSingleEvent);
 // only admin can delete
 eventRouter.delete(
 	'/delete/:id',
+	isAdminMiddleware.isManagerOwner,
 	events.deleteEvent,
 );
 

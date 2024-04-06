@@ -14,10 +14,10 @@ import status from 'http-status';
 import bcryptjs from 'bcryptjs';
 import { DateTime } from 'luxon';
 import moment from 'moment-timezone';
-import UserSchema from '../Models/userSchema.js';
-import TimeTracking from '../Models/timeSchema.js';
-import ProjectSchema from '../Models/projectSchema.js';
-import userSchema from '../Models/userSchema.js';
+import UserSchema from '../Models/userSchema';
+import TimeTracking from '../Models/timeSchema';
+import ProjectSchema from '../Models/projectSchema';
+import userSchema from '../Models/userSchema';
 
 
 const updateEmployeeToCompany = async (req, res) => {
@@ -1026,6 +1026,7 @@ const getTotalHoursAndScreenshots = async (req, res) => {
         }
 
         const ratePerHour = user.billingInfo ? user.billingInfo.ratePerHour : 0;
+        const { DateTime } = require('luxon');
 
         // Convert user input to the application's standard time zone
         const userDateTime = setHoursDifference(date, req.user.timezoneOffset, req.user.timezone)

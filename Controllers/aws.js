@@ -1,7 +1,7 @@
 /* eslint-disable func-names */
 /* eslint-disable no-undef */
 import AWS from 'aws-sdk';
-import config from '../config/config';
+import config from '../config/config.js';
 
 const UploadToAws = file => {
     // console.log(config);

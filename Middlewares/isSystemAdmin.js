@@ -14,6 +14,5 @@ const isSystemOwner = (req, res, next) => {
     }
 };
 
-module.exports = {
-    isSystemOwner,
-};
+export default 
+    {isSystemOwner};

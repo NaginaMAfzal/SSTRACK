@@ -1,10 +1,10 @@
 import express from 'express';
-import userSignIn from '../Controllers/userSignin';
-import adminSignIn from '../Controllers/adminSignin';
-import isLoggedIn from '../Middlewares/loggedIn';
-import userValidator from '../validations/user';
+import userSignIn from '../Controllers/userSignin.js';
+import adminSignIn from '../Controllers/adminSignin.js';
+import isLoggedIn from '../Middlewares/loggedIn.js';
+import userValidator from '../validations/user.js';
 
-import superAdminSignIn from '../Controllers/ownerSignIn';
+import superAdminSignIn from '../Controllers/ownerSignIn.js';
 
 const signInRouter = express.Router();
 

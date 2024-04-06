@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
-import Model from '../Models/Model';
+import Model from '../Models/Model.js';
 
 const createToken = (user, res, next) => {
     const { id, email, name, userType, imageUrl } = user;

@@ -6,13 +6,13 @@ import status from 'http-status';
 import moment from 'moment-timezone';
 // import mongoose from 'mongoose';
 import { DateTime } from 'luxon';
-import TimeTracking from '../Models/timeSchema';
+import TimeTracking from '../Models/timeSchema.js';
 
-import ProjectSchema from '../Models/projectSchema';
-import User from '../Models/userSchema';
-import ScreenshotHistory from '../Models/screenshotHistorySchema';
-import aws from './aws';
-import updationSchema from '../Models/updationSchema';
+import ProjectSchema from '../Models/projectSchema.js';
+import User from '../Models/userSchema.js';
+import ScreenshotHistory from '../Models/screenshotHistorySchema.js';
+import aws from './aws.js';
+import updationSchema from '../Models/updationSchema.js';
 
 /* eslint-disable no-plusplus */
 /* eslint-disable no-await-in-loop */
@@ -271,17 +271,13 @@ const updateAppUrl = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to update app URL', error });
     }
 }
-// Declare a global variable to act as a lock
 
 const addScreenshotab = async (req, res) => {
-    // Check if another request is already being processed
-   
-    // Set the lock to prevent other requests from being processed
-    console.log(req.method, "request received", Date.now())
+    console.log(req.method, "request received")
     if (req.method === 'OPTIONS') {
         // Handle OPTIONS request separately
-        return res.status(200).end();
-
+        res.status(200).end();
+        return;
     }
     const { timeEntryId } = req.params;
     const { description } = req.body;
@@ -291,20 +287,14 @@ const addScreenshotab = async (req, res) => {
     const endTime = 0;
     let url;
     let fileBuffer;
-    // Get the current date and time in the user's local time zone
-    const userLocalNow = new Date(req.body.createdAt);
-
-    // Get the current time as a string in 'hour:minute' format
-    const currentTime = userLocalNow.toLocaleTimeString([], { hour: 'numeric', minute: 'numeric' });
-    const startTime = new Date(req.body.startTime)
-    let originalname = `screenshot_${startTime}_${req.user._id}.jpeg`.replace(/[\s:]/g, '_');
 
     let visitedUrls = [];
     try {
         // Check if a file (screenshot) is provided in the request
-        if (!file || file == null && file == undefined) {
+        if (!file) {
             return res.status(400).json({ success: false, message: 'No file provided' });
         }
+        const startTime = new Date(req.body.startTime)
 
         // Find the time tracking document with the given time entry
         const timeTrack = await TimeTracking.findOne({ 'timeEntries._id': timeEntryId });
@@ -318,45 +308,34 @@ const addScreenshotab = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Time entry not found' });
         }
         else {
-
-            fileBuffer = Buffer.from(file, 'base64');
-
-            fileBuffer.originalname = originalname;
-            const filename = "https://timetracker-09.s3.amazonaws.com/" + fileBuffer.originalname;
-            // Check if the last screenshot's time is greater than 50 seconds or 1 minute
-            const lastScreenshotTime = timeEntry.screenshots.length > 0 ? timeEntry.screenshots[timeEntry.screenshots.length - 1].endTime : 0;
-            const lastSSTime = new Date(lastScreenshotTime); // Example last screenshot time
-
-            const timeDifference = (startTime - lastSSTime) / 1000; // Convert milliseconds to seconds
-            const timeThreshold = 50; // Time threshold in seconds
-
-            // if (timeEntry.screenshots.some(screenshot => screenshot.key == filename)) {
-            //     return res.status(202).json({ success: true, message: 'Filename already exists in one of the screenshots', filename: file.originalname, data: timeEntry });
-            // }
-            if (timeEntry.screenshots.some(screenshot => 
-                screenshot.startTime === startTime || 
-                screenshot.time === currentTime || 
-                screenshot.key === originalname)
-            ) {
-                return res.status(202).json({ 
-                    success: true, 
-                    message: 'Duplicate screenshot found with the same startTime, time, or url', 
-                    filename: file.originalname, 
-                    data: timeEntry 
-                });
-            }
-
-            else if (timeDifference < timeThreshold) {
-                return res.status(202).json({ success: true, message: 'Last screenshot taken too recently', filename: file.originalname, data: timeEntry });
-            }
             const MINIMUM_FILE_SIZE_BYTES = 100 * 1024; // 100 kilobytes
 
-            // Check if the filename already exists in any of the screenshots
+            // Inside your addScreenshotab function, after checking if a file is provided
+            if (!file || file.length < MINIMUM_FILE_SIZE_BYTES) {
+                return res.status(400).json({ success: false, message: 'File size too small' });
+            }
+            if (file !== null && file !== undefined && file.length > MINIMUM_FILE_SIZE_BYTES) {
+                fileBuffer = Buffer.from(file, 'base64');
+                fileBuffer.originalname = `screenshot_${startTime}_${req.user._id}.jpeg`;
+                const filename = "https://timetracker-09.s3.amazonaws.com/" + fileBuffer.originalname;
+                // Check if the filename already exists in any of the screenshots
+                if (timeEntry.screenshots.some(screenshot => screenshot.key == filename)) {
+                    return res.status(202).json({ success: true, message: 'Filename already exists in one of the screenshots', filename: file.originalname, data: timeEntry });
+                }
+                else {
 
-            // Upload the screenshot to AWS and get the URL
-            url = await aws.UploadToAws(fileBuffer);
-
+                    // Upload the screenshot to AWS and get the URL
+                    url = await aws.UploadToAws(fileBuffer);
+                }
+            }
         }
+
+
+        // Get the current date and time in the user's local time zone
+        const userLocalNow = new Date(req.body.createdAt);
+
+        // Get the current time as a string in 'hour:minute' format
+        const currentTime = userLocalNow.toLocaleTimeString([], { hour: 'numeric', minute: 'numeric' });
 
         const createdAt = userLocalNow;
 
@@ -377,18 +356,6 @@ const addScreenshotab = async (req, res) => {
             visitedUrls,
         };
         console.log(addedScreenshot);
-        if (timeEntry.screenshots.some(screenshot => 
-            screenshot.startTime === startTime || 
-            screenshot.time === currentTime || 
-            screenshot.key === originalname)
-        ) {
-            return res.status(202).json({ 
-                success: true, 
-                message: 'Duplicate screenshot found with the same startTime, time, or url', 
-                filename: file.originalname, 
-                data: timeEntry 
-            });
-        }
         // Push the screenshot to the time entry's screenshots array
         timeEntry.screenshots.push(addedScreenshot);
         if (timeEntry.endTime) {
@@ -419,7 +386,7 @@ const addScreenshotab = async (req, res) => {
             user_id: req.user._id,
             timeEntryId: timeEntryId
         };
-        // gbf
+
 
         // Update the user's lastActive field to the current time
         await User.findByIdAndUpdate(
@@ -430,10 +397,6 @@ const addScreenshotab = async (req, res) => {
         const addedScreenshotId = timeEntry.screenshots[timeEntry.screenshots.length - 1]._id;
         // Return the success response with the screenshot URL and time
 
-        // Simulate asynchronous processing
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Example delay
-
-        // Once processing is complete, release the lock
 
         return res.status(200).json({
             success: true,
@@ -445,7 +408,6 @@ const addScreenshotab = async (req, res) => {
             message: 'Screenshot added successfullyy',
         });
     } catch (error) {
-
         console.error('Error adding screenshot:', error);
         return res.status(500).json({ success: false, message: 'Failed to add screenshot' });
     }
@@ -453,7 +415,7 @@ const addScreenshotab = async (req, res) => {
 
 
 const addScreenshott = async (req, res) => {
-    // const pusher = res.locals.pusher;
+    const pusher = res.locals.pusher;
     const { timeEntryId } = req.params;
     const { description } = req.body;
     const file = req.file;
@@ -536,10 +498,10 @@ const addScreenshott = async (req, res) => {
         const addedScreenshotId = timeEntry.screenshots[timeEntry.screenshots.length - 1]._id;
         // Return the success response with the screenshot URL and time
         // applying real time
-        // pusher.trigger("ss-track", "new-ss", {
-        //     message: "new screenshots",
-        //     data: newTimeEntry,
-        // });
+        pusher.trigger("ss-track", "new-ss", {
+            message: "new screenshots",
+            data: newTimeEntry,
+        });
 
         return res.status(200).json({
             success: true,
@@ -557,7 +519,7 @@ const addScreenshott = async (req, res) => {
 
 
 const addScreenshot = async (req, res) => {
-    // const pusher = res.locals.pusher;
+    const pusher = res.locals.pusher;
     const { timeEntryId } = req.params;
     const { description } = req.body;
     const file = req.file;
@@ -658,10 +620,10 @@ const addScreenshot = async (req, res) => {
         const addedScreenshotId = timeEntry.screenshots[timeEntry.screenshots.length - 1]._id;
         // Return the success response with the screenshot URL and time
         // applying real time
-        // pusher.trigger("ss-track", "new-ss", {
-        //     message: "new screenshots",
-        //     data: newTimeEntry,
-        // });
+        pusher.trigger("ss-track", "new-ss", {
+            message: "new screenshots",
+            data: newTimeEntry,
+        });
 
         return res.status(200).json({
             success: true,
@@ -2334,7 +2296,6 @@ const getTotalHoursWithOfflineAndScreenshotse = async (req, res) => {
         }
 
         const ratePerHour = user.billingInfo ? user.billingInfo.ratePerHour : 0;
-        const { DateTime } = require('luxon');
 
         // Convert user input to the application's standard time zone
         const userDateTime = setHoursDifference(date, req.user.timezoneOffset, req.user.timezone)

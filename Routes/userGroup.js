@@ -1,8 +1,8 @@
 import express from 'express';
-import events from '../Controllers/userGroup';
+import events from '../Controllers/userGroup.js';
 
 // auth middlewares for admin
-import isAdminMiddleware from '../Middlewares/isSuperAdmin';
+import isAdminMiddleware from '../Middlewares/isSuperAdmin.js';
 
 
 const eventRouter = express.Router();

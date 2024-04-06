@@ -22,15 +22,15 @@ import generateUniqueId from 'generate-unique-id';
 import mongoose from 'mongoose';
 import { DateTime } from 'luxon';
 
-import EventSchema from '../Models/eventSchema';
-import Project from '../Models/projectSchema';
-import User from '../Models/userSchema';
-import TimeTracking from '../Models/timeSchema';
-import EmployeeSettings from '../Models/effectiveSettingSchema';
-import ScreenshotHistory from '../Models/screenshotHistorySchema';
-import Timetracking from './Timetracking';
-import userSchema from '../Models/userSchema';
-
+import EventSchema from '../Models/eventSchema.js';
+import Project from '../Models/projectSchema.js';
+import User from '../Models/userSchema.js';
+import TimeTracking from '../Models/timeSchema.js';
+import EmployeeSettings from '../Models/effectiveSettingSchema.js';
+import ScreenshotHistory from '../Models/screenshotHistorySchema.js';
+import Timetracking from './Timetracking.js';
+import userSchema from '../Models/userSchema.js';
+import sgMail from '@sendgrid/mail';
 
 
 
@@ -1521,7 +1521,6 @@ const getActivityData = async (req, res) => {
     }
 };
 
-const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const emailInviteExp = async (req, res) => {
@@ -1574,15 +1573,16 @@ const checkPass = async (req, res) => {
 
         if (currentTimestamp > user.otpTime) {
             // The link has expired
-            return res.status(403).json({ success: false, message: 'Verification code expired' });
+            res.status(403).json({ success: false, message: 'Verification code expired' });
+            return;
         }
         else {
-            return res.status(200).json({ success: true, message: 'Token verified' });
+            res.status(200).json({ success: true, message: 'Token verified' });
         }
 
     }
     else {
-        return res.status(400).json({ success: false, message: 'Invalid verification code' });
+        res.status(400).json({ success: false, message: 'Invalid verification code' });
     }
 }
 
@@ -2225,7 +2225,6 @@ const addOfflineTime = async (req, res) => {
         timeTracking.timeEntries.sort((a, b) => a.startTime - b.startTime);
         // Save the changes to the time tracking document
         await timeTracking.save();
-
 
         return res.status(200).json({
             success: true,
@@ -3519,7 +3518,6 @@ const getTotalHoursAndScreenshotemy = async (req, res) => {
         }
 
         const ratePerHour = user.billingInfo ? user.billingInfo.ratePerHour : 0;
-        const { DateTime } = require('luxon');
 
         // Convert user input to the application's standard time zone
         const userDateTime = setHoursDifference(date, req.user.timezoneOffset, req.user.timezone)
@@ -3982,7 +3980,6 @@ const getTotalHoursAndScreenshote = async (req, res) => {
         }
 
         const ratePerHour = user.billingInfo ? user.billingInfo.ratePerHour : 0;
-        const { DateTime } = require('luxon');
 
         // Convert user input to the application's standard time zone
         const userDateTime = setHoursDifference(date, req.user.timezoneOffset, req.user.timezone)

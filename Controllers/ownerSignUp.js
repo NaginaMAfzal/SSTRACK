@@ -1,5 +1,5 @@
 import bcryptjs from 'bcryptjs';
-import Model from '../Models/Model';
+import Model from '../Models/Model.js';
 
 
 const userSignUp = (req, res, next) => {

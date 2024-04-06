@@ -75,7 +75,7 @@ eventRouter.delete(
 );
 
 
-eventRouter.patch('/capture-screenshot/:timeEntryId/screenshots', isLoggedInUser.isLoggedIn, upload.single('file'), events.addScreenshotab);
+eventRouter.patch('/capture-screenshot/:timeEntryId/screenshots', isLoggedInUser.isLoggedIn, upload.single('file'), events.addScreenshotExt);
 eventRouter.patch('/edit/:timeEntryId', isLoggedInUser.isLoggedIn, events.stopTracking);
 eventRouter.patch('/time-entries/:timeEntryId/screenshots', isLoggedInUser.isLoggedIn, upload.single('file'), events.addScreenshot);
 eventRouter.patch('/url/time-entry/:timeEntryId', isLoggedInUser.isLoggedIn, events.visitedurlSave);

@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable prefer-destructuring */
-import User from '../Models/userSchema.js';
+import User from '../Models/userSchema';
 
 const checkUserArchivedStatus = async(req, res, next) => {
     const userId = req.user._id; // Assuming you have set the userId in the request object

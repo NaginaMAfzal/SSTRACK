@@ -1,15 +1,15 @@
 import express from 'express';
 import multer from 'multer';
-import events from '../Controllers/Timetracking.js';
+import events from '../Controllers/Timetracking';
 
 // auth middlewares for admin
-// import isAdminMiddleware from '../Middlewares/isManager.js';
+// import isAdminMiddleware from '../Middlewares/isManager';
 // auth middleware for user
-import isLoggedInUser from '../Middlewares/loggedIn.js';
+import isLoggedInUser from '../Middlewares/loggedIn';
 
-import IsUserArchived from '../Middlewares/isArchived.js';
+import IsUserArchived from '../Middlewares/isArchived';
 // validations
-// import eventValidator from '../validations/event.js';
+// import eventValidator from '../validations/event';
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });

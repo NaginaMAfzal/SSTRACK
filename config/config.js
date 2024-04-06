@@ -1,5 +1,5 @@
-import dotenv from 'dotenv';
-dotenv.config()
+require('dotenv').config();
+
 // const config = require('./config.json');
 
 // const environment = process.env.NODE_ENV || 'development';
@@ -35,4 +35,4 @@ const finalConfig = process.env;
 
 // const finalConfig = _.merge(defaultConfig, environmentConfig);
 
-export default  finalConfig;
+module.exports = finalConfig;

@@ -1,10 +1,10 @@
 import express from 'express';
 // import SystemAdmin from '../Controllers/systemAdminSignin';
-import events from '../Controllers/SystemAdminOp.js';
-import middleware from '../Middlewares/isSystemAdmin.js';
+import events from '../Controllers/SystemAdminOp';
+import middleware from '../Middlewares/isSystemAdmin';
 
 // auth middlewares for admin
-// import isAdminMiddleware from '../Middlewares/isSuperAdmin.js';
+// import isAdminMiddleware from '../Middlewares/isSuperAdmin';
 // auth middleware for user
 
 

@@ -4,7 +4,7 @@ import bcryptjs from 'bcryptjs';
 import status from 'http-status';
 import jwt from 'jsonwebtoken';
 import moment from 'moment-timezone';
-import Model from '../Models/Model.js';
+import Model from '../Models/Model';
 
 const createToken = (user, res, next) => {
     const { id, email, name, userType, company, timezone, timezoneOffset } = user;

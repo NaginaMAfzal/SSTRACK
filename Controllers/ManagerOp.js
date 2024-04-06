@@ -6,10 +6,10 @@
 /* eslint-disable no-await-in-loop */
 // import status from 'http-status';
 import { DateTime } from 'luxon';
-import UserSchema from '../Models/userSchema.js';
-import TimeTracking from '../Models/timeSchema.js';
-import ScreenshotHistory from '../Models/screenshotHistorySchema.js';
-import ProjectSchema from '../Models/projectSchema.js';
+import UserSchema from '../Models/userSchema';
+import TimeTracking from '../Models/timeSchema';
+import ScreenshotHistory from '../Models/screenshotHistorySchema';
+import ProjectSchema from '../Models/projectSchema';
 
 
 const getAllUserActiveStatus = async (req, res) => {

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
-import Model from '../Models/Model.js';
+import Model from '../Models/Model';
 
 
 

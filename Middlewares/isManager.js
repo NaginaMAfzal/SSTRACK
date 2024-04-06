@@ -12,5 +12,6 @@ const isManagerOwner = (req, res, next) => {
     }
 };
 
-export default 
-    {isManagerOwner};
+module.exports = {
+    isManagerOwner,
+};

@@ -6,35 +6,33 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import compression from 'compression';
 import passport from 'passport';
-import dbConnection from './Connection/dbConnect.js';
-import Router from './Routes/Router.js';
-import errorHandler from './Middlewares/errorHandler.js';
-import verifyToken from './Middlewares/verifyToken.js';
-import User from './Models/userSchema.js';
+import dbConnection from './Connection/dbConnect';
+import Router from './Routes/Router';
+import errorHandler from './Middlewares/errorHandler';
+import verifyToken from './Middlewares/verifyToken';
+import User from './Models/userSchema';
 import Pusher from "pusher";
-import timeTracking from './Models/timeSchema.js';
-import Timetracking from './Controllers/Timetracking.js';
+import timeTracking from './Models/timeSchema';
+import Timetracking from './Controllers/Timetracking';
 // const robot = require('robotjs');
 // const schedule = require('node-schedule');
-import MongoClient from 'mongodb';
 
 dbConnection();
 
-
-const pusher = new Pusher({
-    appId: "1689786",
-    key: "334425b3c859ed2f1d2b",
-    secret: "4f194ad6603392f77f20",
-    cluster: "ap2",
-    useTLS: true
-});
+// const pusher = new Pusher({
+//     appId: "1689786",
+//     key: "334425b3c859ed2f1d2b",
+//     secret: "4f194ad6603392f77f20",
+//     cluster: "ap2",
+//     useTLS: true
+// });
 
 const app = express();
-app.use((req, res, next) => {
-    // Make the 'pusher' instance available to all routes via the 'res.locals' object
-    res.locals.pusher = pusher;
-    next();
-});
+// app.use((req, res, next) => {
+//     // Make the 'pusher' instance available to all routes via the 'res.locals' object
+//     res.locals.pusher = pusher;
+//     next();
+// });
 // initialize passport
 app.use(passport.initialize());
 app.use(passport.session());
@@ -89,10 +87,12 @@ app.use('/api/v1/manager', Router.Manager);
 
 app.use('/api/v1/SystemAdmin', Router.SystemAdmin);
 
+// Mobile tracker 
+app.use('/api/v1/tracker', Router.trackerRouter);
 
-pusher.trigger("ss-track", "my-event", {
-    message: "hello world"
-});
+// pusher.trigger("ss-track", "my-event", {
+//     message: "hello world"
+// });
 // i have implemented it in signup controller like this {next(new Error('Image is required'))}
 app.use(errorHandler);
 
@@ -117,6 +117,7 @@ async function deleteTimeTrackingsNotInUsers() {
     }
 }
 
+const { MongoClient } = require('mongodb');
 
 async function getDatabaseStats() {
     const client = new MongoClient(process.env.DB_URI);
@@ -164,6 +165,7 @@ async function getusers() {
 
             // // Save the updated data back to the database
             // await Promise.all(timeTrackings.map(timeTracking => timeTracking.save()));
+
             if (lastActive < fiveMinutesAgo) {
                 if (user.isActive) {
 

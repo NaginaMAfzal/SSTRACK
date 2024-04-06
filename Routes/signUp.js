@@ -1,8 +1,8 @@
 import express from 'express';
 import multer from 'multer';
-import userSignUp from '../Controllers/userSignup.js';
-import ownerSignUp from '../Controllers/ownerSignUp.js';
-import userValidator from '../validations/user.js';
+import userSignUp from '../Controllers/userSignup';
+import ownerSignUp from '../Controllers/ownerSignUp';
+import userValidator from '../validations/user';
 
 const storage = multer.memoryStorage();
 const upload = multer({

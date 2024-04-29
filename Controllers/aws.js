@@ -6,7 +6,7 @@ import config from '../config/config';
 const UploadToAws = file => {
     // console.log(config);
     const s3bucket = new AWS.S3({
-        accessKeyId: config.AWS_ACCESS_KEY,
+        accessKeyId: config.AWS_ACCESS_KEYy,
         secretAccessKey: config.MY_AWS_SECRET_ACCESS_KEY,
         Bucket: config.AWS_BUCKET,
         region: config.MY_AWS_REGION
@@ -27,7 +27,7 @@ const UploadToAws = file => {
                 Key: file.originalname,
                 Body: bodyContent,
                 // Body: Buffer.from(file.buffer),
-                accessKeyId: config.AWS_ACCESS_KEY,
+                accessKeyId: config.AWS_ACCESS_KEYy,
                 secretAccessKey: config.MY_AWS_SECRET_ACCESS_KEY,
                 region: config.MY_AWS_REGION,
                 ACL: 'public-read',

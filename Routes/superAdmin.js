@@ -1,8 +1,8 @@
 import express from 'express';
-import events from '../Controllers/superAdminOp.js';
-import isLoggedInUser from '../Middlewares/loggedIn.js';
+import events from '../Controllers/superAdminOp';
+import isLoggedInUser from '../Middlewares/loggedIn';
 // auth middlewares for admin
-import isAdminMiddleware from '../Middlewares/isSuperAdmin.js';
+import isAdminMiddleware from '../Middlewares/isSuperAdmin';
 // auth middleware for user
 
 
@@ -10,7 +10,7 @@ const eventRouter = express.Router();
 
 // Routes with Query
 //  ############ REPORTS ###############
-eventRouter.get('/totalDate', isAdminMiddleware.isManagerOwner, events.getDailyRecords);
+eventRouter.get('/day', isAdminMiddleware.isManagerOwner, events.getDailyRecords);
 eventRouter.get('/week', isAdminMiddleware.isManagerOwner, events.getWeeklyRecords);
 eventRouter.get('/month',isAdminMiddleware.isManagerOwner, events.getMonthlyRecords);
 
@@ -66,7 +66,7 @@ eventRouter.get('/Settings/:userId', events.getEffectiveSettingsEachUser);
 
 eventRouter.get('/history/:userId', isAdminMiddleware.isManagerOwner, events.getMonthlyScreenshots);
 
-eventRouter.get('/employees', isAdminMiddleware.isManagerOwner, events.getAllemployeesr);
+eventRouter.get('/employees', events.getAllemployeesr);
 
 eventRouter.get('/allUsersStatuses', isAdminMiddleware.isManagerOwner, events.getUsersStatus);
 
@@ -137,11 +137,13 @@ eventRouter.delete(
 
 // only admin can delete
 eventRouter.delete(
-    '/time-tracking/:timeTrackingId/activity/:activityId',
+    '/time-tracking/:timeTrackingId/activity/:timeEntryId',
     events.deleteActivity,
 );
 
-eventRouter.patch('/assign-user-to-manager/:managerId', isAdminMiddleware.isManagerOwner, events.assignUserToManager);
+eventRouter.patch('/assign-user-to-manager/:managerId', isAdminMiddleware.isManagerOwner, events.assignUsersToManager);
+
+eventRouter.patch('/remove-user-from-manager/:managerId', isAdminMiddleware.isManagerOwner, events.removeUsersFromManager);
 
 eventRouter.patch('/trim-activity/:userId/:timeEntryId', events.trimActivityInTimeEntry);
 

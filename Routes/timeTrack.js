@@ -18,7 +18,7 @@ const eventRouter = express.Router();
 
 // ####################   Reports ######################### //
 
-eventRouter.get('/totalDate', isLoggedInUser.isLoggedIn, events.getDailyRecords);
+eventRouter.get('/day', isLoggedInUser.isLoggedIn, events.getDailyRecords);
 eventRouter.get('/week', isLoggedInUser.isLoggedIn, events.getWeeklyRecords);
 eventRouter.get('/month', isLoggedInUser.isLoggedIn, events.getMonthlyRecords);
 eventRouter.get('/year', isLoggedInUser.isLoggedIn, events.getYearlyRecords);
@@ -51,7 +51,7 @@ eventRouter.get('/sorted-screenshot', isLoggedInUser.isLoggedIn, events.getTotal
 
 eventRouter.get('/hours', isLoggedInUser.isLoggedIn, events.getTotalHoursWorked);
 
-// eventRouter.get('/totalDate', isLoggedInUser.isLoggedIn, events.getCustomDateRangeRecords);
+// eventRouter.get('/day', isLoggedInUser.isLoggedIn, events.getCustomDateRangeRecords);
 
 // eventRouter.get('/month/:monthSpecifier', isLoggedInUser.isLoggedIn, events.getMonthlyRecords);
 
@@ -69,13 +69,13 @@ eventRouter.get('/hours', isLoggedInUser.isLoggedIn, events.getTotalHoursWorked)
 // );
 
 eventRouter.delete(
-    '/time-tracking/:timeTrackingId/activity/:activityId',
+    '/time-tracking/:timeTrackingId/activity/:timeEntryId',
     isLoggedInUser.isLoggedIn,
     events.deleteActivity,
 );
 
 
-eventRouter.patch('/capture-screenshot/:timeEntryId/screenshots', isLoggedInUser.isLoggedIn, upload.single('file'), events.addScreenshotExt);
+eventRouter.patch('/capture-screenshot/:timeEntryId/screenshots', isLoggedInUser.isLoggedIn, upload.single('file'), events.addScreenshotab);
 eventRouter.patch('/edit/:timeEntryId', isLoggedInUser.isLoggedIn, events.stopTracking);
 eventRouter.patch('/time-entries/:timeEntryId/screenshots', isLoggedInUser.isLoggedIn, upload.single('file'), events.addScreenshot);
 eventRouter.patch('/url/time-entry/:timeEntryId', isLoggedInUser.isLoggedIn, events.visitedurlSave);

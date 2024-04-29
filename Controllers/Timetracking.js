@@ -6,13 +6,13 @@ import status from 'http-status';
 import moment from 'moment-timezone';
 // import mongoose from 'mongoose';
 import { DateTime } from 'luxon';
-import TimeTracking from '../Models/timeSchema.js';
+import TimeTracking from '../Models/timeSchema';
 
-import ProjectSchema from '../Models/projectSchema.js';
-import User from '../Models/userSchema.js';
-import ScreenshotHistory from '../Models/screenshotHistorySchema.js';
-import aws from './aws.js';
-import updationSchema from '../Models/updationSchema.js';
+import ProjectSchema from '../Models/projectSchema';
+import User from '../Models/userSchema';
+import ScreenshotHistory from '../Models/screenshotHistorySchema';
+import aws from './aws';
+import updationSchema from '../Models/updationSchema';
 
 /* eslint-disable no-plusplus */
 /* eslint-disable no-await-in-loop */
@@ -271,13 +271,17 @@ const updateAppUrl = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to update app URL', error });
     }
 }
+// Declare a global variable to act as a lock
 
-const addScreenshotExt = async (req, res) => {
-    console.log(req.method, "request received")
+const addScreenshotab = async (req, res) => {
+    // Check if another request is already being processed
+   
+    // Set the lock to prevent other requests from being processed
+    console.log(req.method, "request received", Date.now())
     if (req.method === 'OPTIONS') {
         // Handle OPTIONS request separately
-        res.status(200).end();
-        return;
+        return res.status(200).end();
+
     }
     const { timeEntryId } = req.params;
     const { description } = req.body;
@@ -287,6 +291,13 @@ const addScreenshotExt = async (req, res) => {
     const endTime = 0;
     let url;
     let fileBuffer;
+    // Get the current date and time in the user's local time zone
+    const userLocalNow = new Date(req.body.createdAt);
+
+    // Get the current time as a string in 'hour:minute' format
+    const currentTime = userLocalNow.toLocaleTimeString([], { hour: 'numeric', minute: 'numeric' });
+    const startTime = new Date(req.body.startTime)
+    let originalname = `screenshot_${startTime}_${req.user._id}.jpeg`.replace(/[\s:]/g, '_');
 
     let visitedUrls = [];
     try {
@@ -294,7 +305,6 @@ const addScreenshotExt = async (req, res) => {
         if (!file || file == null && file == undefined) {
             return res.status(400).json({ success: false, message: 'No file provided' });
         }
-        const startTime = new Date(req.body.startTime)
 
         // Find the time tracking document with the given time entry
         const timeTrack = await TimeTracking.findOne({ 'timeEntries._id': timeEntryId });
@@ -308,34 +318,45 @@ const addScreenshotExt = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Time entry not found' });
         }
         else {
+
+            fileBuffer = Buffer.from(file, 'base64');
+
+            fileBuffer.originalname = originalname;
+            const filename = "https://timetracker-09.s3.amazonaws.com/" + fileBuffer.originalname;
+            // Check if the last screenshot's time is greater than 50 seconds or 1 minute
+            const lastScreenshotTime = timeEntry.screenshots.length > 0 ? timeEntry.screenshots[timeEntry.screenshots.length - 1].endTime : 0;
+            const lastSSTime = new Date(lastScreenshotTime); // Example last screenshot time
+
+            const timeDifference = (startTime - lastSSTime) / 1000; // Convert milliseconds to seconds
+            const timeThreshold = 50; // Time threshold in seconds
+
+            // if (timeEntry.screenshots.some(screenshot => screenshot.key == filename)) {
+            //     return res.status(202).json({ success: true, message: 'Filename already exists in one of the screenshots', filename: file.originalname, data: timeEntry });
+            // }
+            if (timeEntry.screenshots.some(screenshot => 
+                screenshot.startTime === startTime || 
+                screenshot.time === currentTime || 
+                screenshot.key === originalname)
+            ) {
+                return res.status(202).json({ 
+                    success: true, 
+                    message: 'Duplicate screenshot found with the same startTime, time, or url', 
+                    filename: file.originalname, 
+                    data: timeEntry 
+                });
+            }
+
+            else if (timeDifference < timeThreshold) {
+                return res.status(202).json({ success: true, message: 'Last screenshot taken too recently', filename: file.originalname, data: timeEntry });
+            }
             const MINIMUM_FILE_SIZE_BYTES = 100 * 1024; // 100 kilobytes
 
-            // Inside your addScreenshotExt function, after checking if a file is provided
-            if (!file || file.length < MINIMUM_FILE_SIZE_BYTES) {
-                return res.status(400).json({ success: false, message: 'File size too small' });
-            }
-            if (file !== null && file !== undefined && file.length > MINIMUM_FILE_SIZE_BYTES) {
-                fileBuffer = Buffer.from(file, 'base64');
-                fileBuffer.originalname = `screenshot_${startTime}_${req.user._id}.jpeg`;
-                const filename = "https://timetracker-09.s3.amazonaws.com/" + fileBuffer.originalname;
-                // Check if the filename already exists in any of the screenshots
-                if (timeEntry.screenshots.some(screenshot => screenshot.key == filename)) {
-                    return res.status(202).json({ success: true, message: 'Filename already exists in one of the screenshots', filename: file.originalname, data: timeEntry });
-                }
-                else {
+            // Check if the filename already exists in any of the screenshots
 
-                    // Upload the screenshot to AWS and get the URL
-                    url = await aws.UploadToAws(fileBuffer);
-                }
-            }
+            // Upload the screenshot to AWS and get the URL
+            url = await aws.UploadToAws(fileBuffer);
+
         }
-
-
-        // Get the current date and time in the user's local time zone
-        const userLocalNow = new Date(req.body.createdAt);
-
-        // Get the current time as a string in 'hour:minute' format
-        const currentTime = userLocalNow.toLocaleTimeString([], { hour: 'numeric', minute: 'numeric' });
 
         const createdAt = userLocalNow;
 
@@ -356,6 +377,18 @@ const addScreenshotExt = async (req, res) => {
             visitedUrls,
         };
         console.log(addedScreenshot);
+        if (timeEntry.screenshots.some(screenshot => 
+            screenshot.startTime === startTime || 
+            screenshot.time === currentTime || 
+            screenshot.key === originalname)
+        ) {
+            return res.status(202).json({ 
+                success: true, 
+                message: 'Duplicate screenshot found with the same startTime, time, or url', 
+                filename: file.originalname, 
+                data: timeEntry 
+            });
+        }
         // Push the screenshot to the time entry's screenshots array
         timeEntry.screenshots.push(addedScreenshot);
         if (timeEntry.endTime) {
@@ -386,7 +419,7 @@ const addScreenshotExt = async (req, res) => {
             user_id: req.user._id,
             timeEntryId: timeEntryId
         };
-
+        // gbf
 
         // Update the user's lastActive field to the current time
         await User.findByIdAndUpdate(
@@ -397,6 +430,10 @@ const addScreenshotExt = async (req, res) => {
         const addedScreenshotId = timeEntry.screenshots[timeEntry.screenshots.length - 1]._id;
         // Return the success response with the screenshot URL and time
 
+        // Simulate asynchronous processing
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Example delay
+
+        // Once processing is complete, release the lock
 
         return res.status(200).json({
             success: true,
@@ -408,6 +445,7 @@ const addScreenshotExt = async (req, res) => {
             message: 'Screenshot added successfullyy',
         });
     } catch (error) {
+
         console.error('Error adding screenshot:', error);
         return res.status(500).json({ success: false, message: 'Failed to add screenshot' });
     }
@@ -415,7 +453,7 @@ const addScreenshotExt = async (req, res) => {
 
 
 const addScreenshott = async (req, res) => {
-    const pusher = res.locals.pusher;
+    // const pusher = res.locals.pusher;
     const { timeEntryId } = req.params;
     const { description } = req.body;
     const file = req.file;
@@ -498,10 +536,10 @@ const addScreenshott = async (req, res) => {
         const addedScreenshotId = timeEntry.screenshots[timeEntry.screenshots.length - 1]._id;
         // Return the success response with the screenshot URL and time
         // applying real time
-        pusher.trigger("ss-track", "new-ss", {
-            message: "new screenshots",
-            data: newTimeEntry,
-        });
+        // pusher.trigger("ss-track", "new-ss", {
+        //     message: "new screenshots",
+        //     data: newTimeEntry,
+        // });
 
         return res.status(200).json({
             success: true,
@@ -519,7 +557,7 @@ const addScreenshott = async (req, res) => {
 
 
 const addScreenshot = async (req, res) => {
-    const pusher = res.locals.pusher;
+    // const pusher = res.locals.pusher;
     const { timeEntryId } = req.params;
     const { description } = req.body;
     const file = req.file;
@@ -620,10 +658,10 @@ const addScreenshot = async (req, res) => {
         const addedScreenshotId = timeEntry.screenshots[timeEntry.screenshots.length - 1]._id;
         // Return the success response with the screenshot URL and time
         // applying real time
-        pusher.trigger("ss-track", "new-ss", {
-            message: "new screenshots",
-            data: newTimeEntry,
-        });
+        // pusher.trigger("ss-track", "new-ss", {
+        //     message: "new screenshots",
+        //     data: newTimeEntry,
+        // });
 
         return res.status(200).json({
             success: true,
@@ -1126,6 +1164,9 @@ const getTotalHoursWorked = async (req, res) => {
                 let startTime = DateTime.fromJSDate(timeEntry.startTime, { zone: req.user.timezone });
 
                 let endTime = 0;
+                if (!timeEntry.screenshots || timeEntry.screenshots.length === 0) {
+                    continue;
+                }
                 if (timeEntry.endTime) {
                     endTime = DateTime.fromJSDate(timeEntry.endTime, { zone: req.user.timezone });
                 } else {
@@ -1645,8 +1686,13 @@ const deleteScreenshotAndDeductTime = async (req, res) => {
 
 const formatTime = (time) => {
     const hours = Math.floor(time);
-    const minutes = Math.round((time - hours) * 60);
-    return `${hours}h ${minutes}m`;
+    const minutes = Math.floor((time - hours) * 60);
+    if (minutes === 60) {
+        // If minutes are 60, increment the hour and set minutes to 0
+        return `${hours + 1}h 0m`;
+    } else {
+        return `${hours}h ${minutes}m`;
+    }
 };
 
 
@@ -1875,15 +1921,88 @@ const getTotalHoursWithOfflineAndScreenshots = async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
 const splitActivity = async (req, res) => {
+    let indexToSplit;
+    try {
+        const { timeEntryId } = req.body;
+        const userId = req.user._id
+        const date = DateTime.fromFormat(req.body.splitTime, "yyyy-MM-dd h:mm a",);
+        // Convert user input to the application's standard time zone
+        // const splitTime = setHoursDifference(date.toJSDate(), req.user.timezoneOffset, req.user.timezone)
+        let splitTime = DateTime.fromJSDate(date.toJSDate(), { zone: req.user.timezone });
+
+        const timeTracking = await TimeTracking.findOne({
+            userId,
+            'timeEntries._id': timeEntryId,
+        }).exec();
+
+        // const timeTracking = await TimeTracking.findOne({
+        //     _id: req.user._id,
+        //     'timeEntries._id': timeEntryId,
+        // });
+
+        if (!timeTracking) {
+            return res.status(404).json({ success: false, message: 'Time entry not found' });
+        }
+
+        const timeEntry = timeTracking.timeEntries.id(timeEntryId);
+        if (!timeEntry) {
+            return res.status(404).json({ success: false, message: 'Time entry not found' });
+        }
+        let startTime = DateTime.fromJSDate(timeEntry.startTime, { zone: req.user.timezone });
+
+        let endTime = DateTime.fromJSDate(timeEntry.endTime, { zone: req.user.timezone });
+        
+        if (startTime <= splitTime && endTime >= splitTime) {
+            indexToSplit = timeEntry.screenshots.findIndex(screenshot => {
+                // Assuming screenshot.startTime and screenshot.createdAt are JavaScript Date objects
+                const screenshotTime = DateTime.fromJSDate(
+                    new Date(screenshot.startTime) || new Date(screenshot.createdAt),
+                    { zone: req.user.timezone }
+                ); return screenshotTime >= splitTime;
+            });
+        }
+        else {
+            return res.status(404).json({ success: false, message: 'Invalid time' });
+        }
+
+
+        let newTimeEntry = [];
+        if (indexToSplit !== -1) {
+            // Create a new time entry with the second part of timeEntry
+            newTimeEntry = { ...timeEntry };
+            newTimeEntry.startTime = timeEntry.startTime
+            newTimeEntry.screenshots = timeEntry.screenshots.slice(0, indexToSplit);
+            newTimeEntry.endTime = splitTime
+
+            // Adjust the endTime of the original timeEntry
+            timeEntry.startTime = splitTime
+            timeEntry.screenshots = timeEntry.screenshots.slice(indexToSplit);
+
+            // Now, foundTimeEntry contains screenshots up to endTime, and newTimeEntry contains screenshots after endTime
+        }
+        timeTracking.timeEntries.push(newTimeEntry)
+        timeTracking.timeEntries.sort((a, b) => a.startTime - b.startTime);
+
+        await timeTracking.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Activity split successfully',
+            splitActivities: [timeEntry, newTimeEntry],
+        });
+    } catch (error) {
+        console.error('Error splitting activity:', error);
+        return res.status(500).json({ success: false, message: 'Failed to split activity' });
+    }
+};
+
+
+
+
+
+
+const splitActivityold = async (req, res) => {
     try {
         const { timeEntryId, activityId, splitTime } = req.body;
 
@@ -2001,11 +2120,10 @@ const splitActivity = async (req, res) => {
 
 
 
-
 const deleteActivity = async (req, res) => {
     try {
-        const { timeTrackingId, activityId } = req.params;
-
+        const { timeTrackingId, timeEntryId } = req.params;
+        console.log(timeTrackingId, timeEntryId);
         // Find the time tracking document by ID
         const timeTracking = await TimeTracking.findById(timeTrackingId);
 
@@ -2013,24 +2131,45 @@ const deleteActivity = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Time tracking document not found' });
         }
 
-        // Find the activity to be deleted by ID
-        const activity = timeTracking.timeEntries.find((activity) => activity._id.toString() === activityId);
+        // Find the timeEntry to be deleted by ID
+        const foundTimeEntry = timeTracking.timeEntries.find((timeEntry) => timeEntry._id.toString() === timeEntryId);
 
-        if (!activity) {
-            return res.status(404).json({ success: false, message: 'Activity not found' });
+        if (!foundTimeEntry) {
+            return res.status(404).json({ success: false, message: 'timeEntry not found' });
         }
+        const cloneTimeEntry = JSON.parse(JSON.stringify(foundTimeEntry)); // Deep clone the object
 
-        // Remove the activity from the time tracking document
-        timeTracking.timeEntries.pull(activityId);
+        const deleteActivity = {
+            startTime: foundTimeEntry.startTime,
+            endTime: foundTimeEntry.endTime,
+            changeTime: new Date(),
+            editedBy: req.user._id,
+            scope: 'delete timeEntry',
+            change: `delete Activity from ${foundTimeEntry.startTime} to ${foundTimeEntry.endTime}`,
+            screenshots: foundTimeEntry.screenshots.map(screenshot => JSON.parse(JSON.stringify(screenshot))),
+            historyChanges: [{
+                changeTime: new Date(),
+                editedBy: req.user._id,
+                previousData: cloneTimeEntry, // Store the deep clone in historyChanges
+            }],
+        };
 
-        // Save the updated time tracking document
+        // Step 7: Push the new activity to the activities array
+        foundTimeEntry.activities.push(deleteActivity);
+        foundTimeEntry.screenshots = [];
+        // Step 7: Push the new activity to the activities array
+        foundTimeEntry.deletedBy = req.user._id;
+        foundTimeEntry.deletedAt = new Date()
+        foundTimeEntry.endTime = new Date(foundTimeEntry.startTime)
+        // Remove the timeEntry from the time tracking document
+
         await timeTracking.save();
 
         // Return success response
-        res.json({ success: true, message: 'Activity deleted successfully' });
+        res.status(200).json({ success: true, message: 'timeEntry deleted successfully' });
     } catch (error) {
-        console.error('Error deleting activity:', error);
-        res.status(500).json({ success: false, message: 'Failed to delete activity' });
+        console.error('Error deleting timeEntry:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete timeEntry' });
     }
 };
 
@@ -2296,6 +2435,7 @@ const getTotalHoursWithOfflineAndScreenshotse = async (req, res) => {
         }
 
         const ratePerHour = user.billingInfo ? user.billingInfo.ratePerHour : 0;
+        const { DateTime } = require('luxon');
 
         // Convert user input to the application's standard time zone
         const userDateTime = setHoursDifference(date, req.user.timezoneOffset, req.user.timezone)
@@ -2345,6 +2485,9 @@ const getTotalHoursWithOfflineAndScreenshotse = async (req, res) => {
                 let startTime = DateTime.fromJSDate(timeEntry.startTime, { zone: req.user.timezone });
 
                 let endTime = 0;
+                if (!timeEntry.screenshots || timeEntry.screenshots.length === 0) {
+                    continue;
+                }
                 if (timeEntry.endTime) {
                     endTime = DateTime.fromJSDate(timeEntry.endTime, { zone: req.user.timezone });
                 } else {
@@ -2434,7 +2577,7 @@ const getTotalHoursWithOfflineAndScreenshotse = async (req, res) => {
                     }
 
                 }
-                else if (startTime >= startOfToday && startTime < endOfToday) {
+                if (startTime >= startOfToday && startTime < endOfToday) {
                     const screenshotStartTime = startTime.toFormat('h:mm a');
                     const screenshotEndTime = endTime.toFormat('h:mm a');
 
@@ -2484,8 +2627,10 @@ const getTotalHoursWithOfflineAndScreenshotse = async (req, res) => {
                 if (timeEntry.screenshots && timeEntry.screenshots.length > 0) {
                     console.log('Screenshots are available for processing.');
                     const screenshotsToday = timeEntry.screenshots.filter((screenshot) => {
-                        const screenshotTime = converttimezone(screenshot.createdAt, req.user.timezone);
-
+                        const screenshotTime = DateTime.fromJSDate(
+                            new Date(screenshot.startTime) || new Date(screenshot.createdAt),
+                            { zone: req.user.timezone }
+                        );
                         return screenshotTime >= startOfToday && screenshotTime < endOfToday;
                     });
 
@@ -2504,7 +2649,7 @@ const getTotalHoursWithOfflineAndScreenshotse = async (req, res) => {
                         // Map screenshots to screenshotDetails
                         const screenshotDetails = screenshotsToday.map((screenshot) => {
                             // console.log('Processing screenshot:', screenshot); // Log each screenshot for debugging
-                            const convertedCreatedAt = converttimezone(screenshot.createdAt, req.user.timezone);
+                            const convertedCreatedAt = DateTime.fromJSDate(screenshot.createdAt, { zone: req.user.timezone });
 
                             // Calculate the total activity for this screenshot
                             if (screenshot.visitedUrls && screenshot.visitedUrls.length > 0) {
@@ -2518,6 +2663,8 @@ const getTotalHoursWithOfflineAndScreenshotse = async (req, res) => {
                                 description: screenshot.description,
                                 time: convertedCreatedAt.toFormat('h:mm a'),
                                 visitedUrls: screenshot.visitedUrls,
+                                activities: timeEntry.activities,
+
                             };
                         });
                         let totalcount = 0;
@@ -2725,6 +2872,9 @@ const getTotalHoursByDay = async (req, res) => {
                     let startTime = DateTime.fromJSDate(timeEntry.startTime, { zone: req.user.timezone });
 
                     let endTime = 0;
+                    if (!timeEntry.screenshots || timeEntry.screenshots.length === 0) {
+                        continue;
+                    }
                     if (timeEntry.endTime) {
                         endTime = DateTime.fromJSDate(timeEntry.endTime, { zone: req.user.timezone });
                     } else {
@@ -2998,6 +3148,9 @@ const getTotalHoursForYear = async (user, yearStartDate, yearEndDate, timezone) 
             let startTime = DateTime.fromJSDate(timeEntry.startTime, { zone: timezone });
 
             let endTime = 0;
+            if (!timeEntry.screenshots || timeEntry.screenshots.length === 0) {
+                continue;
+            }
             if (timeEntry.endTime) {
                 endTime = DateTime.fromJSDate(timeEntry.endTime, { zone: timezone });
             } else {
@@ -3282,6 +3435,9 @@ const getTotalHoursForMonth = async (user, monthStartDate, monthEndDate, timezon
             let startTime = DateTime.fromJSDate(timeEntry.startTime, { zone: timezone });
 
             let endTime = 0;
+            if (!timeEntry.screenshots || timeEntry.screenshots.length === 0) {
+                continue;
+            }
             if (timeEntry.endTime) {
                 endTime = DateTime.fromJSDate(timeEntry.endTime, { zone: timezone });
             } else {
@@ -3568,6 +3724,9 @@ const getTotalHoursForWeek = async (user, weekStartDate, weekEndDate, timezone) 
             let startTime = DateTime.fromJSDate(timeEntry.startTime, { zone: timezone });
 
             let endTime = 0;
+            if (!timeEntry.screenshots || timeEntry.screenshots.length === 0) {
+                continue;
+            }
             if (timeEntry.endTime) {
                 endTime = DateTime.fromJSDate(timeEntry.endTime, { zone: timezone });
             } else {
@@ -3857,6 +4016,9 @@ const getTotalHoursForDay = async (user, dayStartTime, dayEndTime, timezone) => 
             let startTime = DateTime.fromJSDate(timeEntry.startTime, { zone: timezone });
 
             let endTime = 0;
+            if (!timeEntry.screenshots || timeEntry.screenshots.length === 0) {
+                continue;
+            }
             if (timeEntry.endTime) {
                 endTime = DateTime.fromJSDate(timeEntry.endTime, { zone: timezone });
             } else {
@@ -3954,4 +4116,4 @@ function convertDate(date, timezoneOffset, timeZone) {
     return dateToday;
 }
 
-export default { getDailyTimetracking, getTotalHoursWithOfflineAndScreenshotse, visitedurlSave, getWeeklyRecords, getMonthlyRecords, getTotalWorkingHoursForYear, addNewTracking, deleteActivity, updateActivityData, getTotalHoursWithOfflineAndScreenshots, deleteScreenshotAndDeductTime, getActivityData, stopTracking, updatedFile, updateAppUrl, addScreenshotExt, addScreenshot, splitActivity, getTotalHoursWorked, getUserOnlineStatus, sortedScreenshots, getMonthlyScreenshots, getTotalHoursByDay, getYearlyRecords, getDailyRecords };
+export default { getDailyTimetracking, getTotalHoursWithOfflineAndScreenshotse, visitedurlSave, getWeeklyRecords, getMonthlyRecords, getTotalWorkingHoursForYear, addNewTracking, deleteActivity, updateActivityData, getTotalHoursWithOfflineAndScreenshots, deleteScreenshotAndDeductTime, getActivityData, stopTracking, updatedFile, updateAppUrl, addScreenshotab, addScreenshot, splitActivity, getTotalHoursWorked, getUserOnlineStatus, sortedScreenshots, getMonthlyScreenshots, getTotalHoursByDay, getYearlyRecords, getDailyRecords };

@@ -12,7 +12,7 @@ const eventRouter = express.Router();
 
 // Routes with Query
 //  ############ REPORTS ###############
-eventRouter.get('/totalDate', middleware.isLoggedIn, events.getDailyRecords);
+eventRouter.get('/day', middleware.isLoggedIn, events.getDailyRecords);
 eventRouter.get('/week', middleware.isLoggedIn, events.getWeeklyRecords);
 eventRouter.get('/month',middleware.isLoggedIn, events.getMonthlyRecords);
 
@@ -25,11 +25,16 @@ eventRouter.get('/companies',middleware.isLoggedIn ,events.getEvents);
 eventRouter.patch('/archived/:userId',middleware.isLoggedIn,  events.updateUserArchiveStatus);
 eventRouter.get('/getDisabledEmployee',middleware.isLoggedIn, events.getcompanyemployees);
 eventRouter.get('/getCompanyemployee',middleware.isLoggedIn, events.getTotalHoursWorkedAllEmployeesT);
-eventRouter.get('/settingsE/:userId', middleware.isLoggedIn, events.updateEmployeeSettings);
+eventRouter.patch('/settingsE/:userId', middleware.isLoggedIn, events.updateEmployeeSettings);
 eventRouter.get('/sorted-datebased/:userId', middleware.isLoggedIn, events.getTotalHoursAndScreenshots);
 
 eventRouter.get('/hoursbyday/:userId', middleware.isLoggedIn, events.getTotalHoursByDay);
 
+eventRouter.delete(
+    '/time-tracking/:timeTrackingId/activity/:timeEntryId',
+    middleware.isLoggedIn,
+    events.deleteActivity,
+);
 // eventRouter.post(
 //     '/addProject',
 //     isAdminMiddleware.isManagerOwner,

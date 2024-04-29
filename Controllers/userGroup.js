@@ -2,6 +2,7 @@ import status from 'http-status';
 import UserGroupSchema from '../Models/userGroupSchema';
 import ProjectSchema from '../Models/projectSchema';
 import User from '../Models/Model';
+import userSchema from '../Models/userSchema';
 
 const getUserGroups = (req, res) => {
     UserGroupSchema.find()
@@ -15,7 +16,7 @@ const getUserGroups = (req, res) => {
             });
         });
 };
-const addEmployeeToUserGroup = async(req, res) => {
+const addEmployeeToUserGroup = async (req, res) => {
     const { groupId } = req.params;
     const { userIds } = req.body;
 
@@ -44,7 +45,7 @@ const addEmployeeToUserGroup = async(req, res) => {
 
 };
 
-const allowUserToTrackTime = async(req, res) => {
+const allowUserToTrackTime = async (req, res) => {
     const { projectId, userId } = req.params;
     const { allowTracking } = req.body; // boolean indicating whether tracking should be allowed
 
@@ -75,7 +76,7 @@ const allowUserToTrackTime = async(req, res) => {
         res.status(500).send({ message: 'Internal server error.' });
     }
 };
-const addClientToProject = async(req, res) => {
+const addClientToProject = async (req, res) => {
     const { projectId } = req.params;
     const { clientId } = req.body;
 
@@ -109,7 +110,7 @@ const addClientToProject = async(req, res) => {
 };
 
 
-const addEmployeeToProject = async(req, res) => {
+const addEmployeeToProject = async (req, res) => {
     const { pId } = req.params;
     const { userIds } = req.body;
 
@@ -140,7 +141,7 @@ const addEmployeeToProject = async(req, res) => {
 };
 
 
-const removeEmployeeFromUserGroup = async(req, res) => {
+const removeEmployeeFromUserGroup = async (req, res) => {
     const { gId } = req.params;
     const { userId } = req.body;
 
@@ -202,7 +203,7 @@ const addUserGroup = (req, res) => {
             });
         });
 };
-const countEmployeesInProject = async(projectId) => {
+const countEmployeesInProject = async (projectId) => {
     try {
         // Find the project by its ID
         const project = await ProjectSchema.findById(projectId);
@@ -221,7 +222,7 @@ const countEmployeesInProject = async(projectId) => {
         throw error;
     }
 };
-const removeEmployeeFromProject = async(req, res) => {
+const removeEmployeeFromProject = async (req, res) => {
     const { pId } = req.params;
     const { userId } = req.body;
 
@@ -273,7 +274,7 @@ const deleteEvent = (req, res) => {
     });
 };
 
-const EmployeeRoleUpdate = (req, res) => {
+const EmployeeRoleUpdateold = (req, res) => {
     const { id } = req.params;
     const query = { $set: req.body };
     User.UserModel.findByIdAndUpdate(id, query, { new: true }, (err, result) => {
@@ -289,6 +290,45 @@ const EmployeeRoleUpdate = (req, res) => {
         }
     });
 };
+
+const EmployeeRoleUpdate = async (req, res) => {
+    const { id } = req.params;
+    const userType = req.body.userType;
+
+    try {
+        const roleUser = await userSchema.findById(id);
+        if (roleUser) {
+            if (roleUser.userType === 'manager') {
+                // Fetch all users assigned to this manager
+                const assignedUserIds = roleUser.assignedUsers;
+                // Update each assigned user to remove the manager ID
+                for (const userId of assignedUserIds) {
+                    await userSchema.findByIdAndUpdate(userId, { $pull: { managerId: id } });
+                }
+
+                roleUser.assignedUsers = []
+                roleUser.userType = userType
+                // Proceed with the update logic for the manager
+                const updatedUser = roleUser.save()
+                // Respond with success message and updated user object
+                res.status(200).json({ success: true, message: 'Successfully Updated.', roleUser });
+            } else {
+                roleUser.userType = userType;
+                // If the user is not a manager, proceed with the update directly
+                const updatedUser = roleUser.save()
+                // Respond with success message and updated user object
+                res.status(200).json({ success: true, message: 'Successfully Updated.', roleUser });
+            }
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
 
 const getSingleEvent = (req, res) => {
     const { eid } = req.params;

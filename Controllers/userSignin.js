@@ -48,10 +48,10 @@ const normalizeEmail = (email) => {
 
 const userSignIn = (req, res, next) => {
     const { email, password } = req.body;
-    const normalizedEmail = normalizeEmail(email);
+    // const normalizedEmail = normalizeEmail(email);
 
     // Find user with the passed email
-    Model.UserModel.findOne({ email: normalizedEmail }).then(user => {
+    Model.UserModel.findOne({ email: email }).then(user => {
         if (user) {
             if (!user.isArchived) {
                 // if email found compare the password

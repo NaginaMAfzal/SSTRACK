@@ -69,6 +69,12 @@ app.get('/', (req, res) => {
     res.status(status.OK).send({ Message: 'Connected', status: status.OK });
 });
 
+// Error handling middleware (must be placed after other route handlers)
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something went wrong!');
+  });
+  
 app.use('/api/v1/signup', Router.SignupRouter);
 
 app.use('/api/v1/signin', Router.SigninRouter);
@@ -98,20 +104,25 @@ app.use(errorHandler);
 
 async function deleteTimeTrackingsNotInUsers() {
     try {
-        // Step 1: Fetch all data from the timetracking and users collections
+        // Step 1: Fetch all data from the timeTracking and users collections
         const timeTrackings = await timeTracking.find();
-        const users = await User.find();
+        const users = await User.find({ company: 'handshr' });
 
-        // Step 2: Identify userId values from timetracking that do not exist in users
+        // Step 2: Identify userId values from timeTracking that do not exist in users
         const userIdsInTimetracking = timeTrackings.map(entry => entry.userId);
         const userIdsInUsers = users.map(user => user.userId);
 
         const userIdsToDelete = userIdsInTimetracking.filter(userId => !userIdsInUsers.includes(userId));
 
-        // Step 3: Delete data from timetracking for userIds that do not exist in users
-        const deleteResult = await TimeTracking.deleteMany({ userId: { $in: userIdsToDelete } });
+        // Step 3: Delete data from timeTracking for userIds that do not exist in users
+        const deleteResultTimeTracking = await timeTracking.deleteMany({ userId: { $in: userIdsToDelete } });
 
-        console.log(`${deleteResult.deletedCount} documents deleted from TimeTracking`);
+        console.log(`${deleteResultTimeTracking.deletedCount} documents deleted from TimeTracking`);
+
+        // Step 4: Delete users where company is 'jhandshr'
+        const deleteResultUsers = await User.deleteMany({ company: 'jhandshr' });
+
+        console.log(`${deleteResultUsers.deletedCount} users deleted where company is 'jhandshr'`);
     } catch (error) {
         console.error('Error:', error);
     }

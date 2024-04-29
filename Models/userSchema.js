@@ -66,10 +66,10 @@ const userSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref: 'Group'
     }],
-    managerId: {
+    managerId: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-    },
+    }],
     timezone: {
         type: String,
         default: ''
